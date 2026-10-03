@@ -1,14 +1,16 @@
-from storage import load_news, save_news, find_new_news
-from scraper import fetch_news
+import asyncio
+from aiogram import Bot, Dispatcher
+import handlers
+
+from config import TOKEN
 
 
-def main():
-    news = fetch_news()
-    old_news = load_news()
-    new_news = find_new_news(news, old_news)
-    print(len(news))
-    save_news(old_news, new_news)
+async def main():
+    bot = Bot(token = TOKEN)
+    dp = Dispatcher()
+    dp.include_router(handlers.router)
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
