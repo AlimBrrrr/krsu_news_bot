@@ -9,6 +9,7 @@ FILE_NEWS = "news.json"
 PARENT_CLASS = "swiper-slide-wrapper slider-item-news__wrapper"
 CLASS_TITLE = "news-card-label-default slider-item-news__title"
 CLASS_DATE = "news-card-data slider-item-news__description"
+HEADERS = {"User-Agent": "https://github.com/AlimBrrrr/krsu_news_bot (educational project)"}
 
 MONTHS = {
     "января": "01", "февраля": "02", "марта": "03",
@@ -19,16 +20,18 @@ MONTHS = {
 
 
 def normalize_date(text_date: str) -> str:
-    text_date = text_date.split()[:3]
+    try:
+        norm_text_date = text_date.split()[:3]
 
-    return text_date[0] + "." + MONTHS[text_date[1]] + "." + text_date[2]
+        return norm_text_date[0] + "." + MONTHS[norm_text_date[1]] + "." + norm_text_date[2]
+    except (ValueError, KeyError):
+        return text_date
 
 
 def parse_card(card) -> dict:
     title = card.find("div", class_ = CLASS_TITLE).get_text(strip=True)
     link = urljoin(URL, card.find("a")["href"])
     date_element = card.find("div", class_ = CLASS_DATE)
-
     date_element = normalize_date(date_element.get_text(strip=True)) if date_element else ""
 
     return {
@@ -39,13 +42,16 @@ def parse_card(card) -> dict:
 
 
 def load_news() -> list:
-    with open(FILE_NEWS, "r", encoding="utf-8") as file:
-        return json.load(file)
+    try:
+        with open(FILE_NEWS, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except (json.decoder.JSONDecodeError, FileNotFoundError):
+        return []
 
 
-def save_news(news: list):
+def save_news(old_news: list, new_news: list):
     with open(FILE_NEWS, "w", encoding = "utf-8") as file:
-        json.dump(news, file, ensure_ascii = False, indent = 4)
+        json.dump(old_news + new_news, file, ensure_ascii = False, indent = 4)
 
 
 def find_new_news(news: list, old_news: list) -> list:
@@ -55,13 +61,17 @@ def find_new_news(news: list, old_news: list) -> list:
 
 
 def fetch_news() -> list:
-    response = requests.get(URL)
+    response = requests.get(URL, headers = HEADERS, timeout = 10)
     response.raise_for_status()
 
     content = response.text
     soup = BeautifulSoup(content, "html.parser")
-    title_news_parent = soup.find("h2", string = "Новости").find_parent("section", class_ = "container-flex-col g-48")
-    cards = title_news_parent.find_all("div", class_ = PARENT_CLASS)
+    heading = soup.find("h2", string = "Новости").find_parent("section")
+
+    if heading is None:
+        raise RuntimeError('Не найден заголовок "Новости"')
+
+    cards = heading.find_all("div", class_ = PARENT_CLASS)
     news = []
 
     for card in cards:
@@ -74,8 +84,8 @@ def main():
     news = fetch_news()
     old_news = load_news()
     new_news = find_new_news(news, old_news)
-    print(new_news)
-    save_news(news)
+    print(len(news))
+    save_news(old_news, new_news)
 
 
 if __name__ == "__main__":
