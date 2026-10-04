@@ -8,7 +8,7 @@ from config import TOKEN
 async def main():
     bot = Bot(token = TOKEN)
     dp = Dispatcher()
-    dp.include_router(handlers.router)
+    dp.include_routers(handlers.router)
     await dp.start_polling(bot)
 
 
