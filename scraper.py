@@ -15,12 +15,22 @@ MONTHS = {
     "октября": "10", "ноября": "11", "декабря": "12",
 }
 
+DAYS = {
+    "1": "01", "2": "02", "3": "03",
+    "4": "04", "5": "05", "6": "06",
+    "7": "07", "8": "08", "9": "09",
+}
+
 
 def normalize_date(text_date: str) -> str:
     try:
         norm_text_date = text_date.split()[:3]
+        day = norm_text_date[0]
 
-        return norm_text_date[0] + "." + MONTHS[norm_text_date[1]] + "." + norm_text_date[2]
+        if day in '0123456789' and len(day) == 1:
+            day = DAYS[day]
+
+        return norm_text_date[2] + "-" + MONTHS[norm_text_date[1]] + "-" + day
     except (ValueError, KeyError):
         return text_date
 

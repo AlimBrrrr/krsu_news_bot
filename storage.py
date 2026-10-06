@@ -18,6 +18,6 @@ def save_news(old_news: list, new_news: list):
 
 
 def find_new_news(news: list, old_news: list) -> list:
-    old_links = [a["link"] for a in old_news]
+    old_links = set([a["link"] for a in old_news])
     
     return [a for a in news if a["link"] not in old_links]
