@@ -1,7 +1,6 @@
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command, CommandObject
-import html
 
 import service
 import subscribers
@@ -46,26 +45,14 @@ async def send_latest(message: Message, command: CommandObject):
             return
 
         if count > number_of_news:
-            await message.answer((f"Нашлось только {number_of_news} новостей:\n", format_news(service.get_latest(number_of_news))), parse_mode = "HTML")
+            await message.answer((f"Нашлось только {number_of_news} новостей:\n", service.format_news(service.get_latest(number_of_news))), parse_mode = "HTML")
             return
 
     except ValueError:
         await message.answer("При вызове /latest ввели не число! Введите число")
         return
 
-    await message.answer(format_news(service.get_latest(count)), parse_mode = "HTML")
-
-    
-def format_news(items: list[dict]) -> str:
-    msg = ""
-    for item in items:
-        title, link, date = item["title"], item["link"], item["date"]
-        title = html.escape(title, quote = True)
-        link = html.escape(link, quote = True)
-        date = html.escape(date, quote = True)
-        msg += (f'<b> - {title}</b>\n{date}, <a href="{link}">Ссылка</a>\n\n')
-
-    return msg
+    await message.answer(service.format_news(service.get_latest(count)), parse_mode = "HTML")
 
 
 @router.message(Command(commands = ["show_subscribers"]))

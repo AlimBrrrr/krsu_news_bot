@@ -1,4 +1,5 @@
 import asyncio
+import html
 
 from scraper import fetch_news
 from storage import load_news, save_news, find_new_news
@@ -30,3 +31,15 @@ def get_latest(n) -> list[dict]:
         return news[:n]
 
     return []
+
+
+def format_news(items: list[dict]) -> str:
+    msg = ""
+    for item in items:
+        title, link, date = item["title"], item["link"], item["date"]
+        title = html.escape(title, quote = True)
+        link = html.escape(link, quote = True)
+        date = html.escape(date, quote = True)
+        msg += (f'<b> - {title}</b>\n{date}, <a href="{link}">Ссылка</a>\n\n')
+
+    return msg
