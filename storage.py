@@ -1,14 +1,17 @@
 import json
+import logging
 
 
 FILE_NEWS = "news.json"
+logger = logging.getLogger(__name__)
 
 
 def load_news() -> list:
     try:
         with open(FILE_NEWS, "r", encoding="utf-8") as file:
             return json.load(file)
-    except (json.decoder.JSONDecodeError, FileNotFoundError):
+    except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
+        logger.exception("Ошибка чтения файла: %s", e)
         return []
 
 

@@ -1,8 +1,12 @@
 import asyncio
 import html
+import logging
 
 from scraper import fetch_news
 from storage import load_news, save_news, find_new_news
+
+
+logger = logging.getLogger(__name__)
 
 
 async def check_news() -> list[dict]:
@@ -11,6 +15,7 @@ async def check_news() -> list[dict]:
 
     if not old_news:
         save_news(old_news, news)
+        logger.info("Файл с новостями был пуст. Уже обновлен!")
 
         return []
 

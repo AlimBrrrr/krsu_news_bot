@@ -4,6 +4,7 @@ from aiogram.filters import Command, CommandObject
 
 import service
 import subscribers
+from config import ADMIN
 
 
 router = Router()
@@ -55,7 +56,10 @@ async def send_latest(message: Message, command: CommandObject):
     await message.answer(service.format_news(service.get_latest(count)), parse_mode = "HTML")
 
 
-@router.message(Command(commands = ["show_subscribers"]))
-async def show_subscribers(message: Message):
-    await message.answer(str(subscribers.get_subscribers()))
+@router.message(Command(commands = ["sub"]))
+async def sub(message: Message):
+    if int(message.from_user.id) == int(ADMIN):
+        await message.answer(str(subscribers.get_subscribers()))
 
+    else:
+        await message.answer("Вы не админ! Вам не можете использовать эту функцию")
