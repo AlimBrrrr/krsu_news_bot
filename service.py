@@ -1,6 +1,7 @@
 import asyncio
 import html
 import logging
+from datetime import date
 
 from scraper import fetch_news
 from storage import load_news, save_news, find_new_news
@@ -15,7 +16,7 @@ async def check_news() -> list[dict]:
 
     if not old_news:
         save_news(old_news, news)
-        logger.info("Файл с новостями был пуст. Уже обновлен!")
+        logger.info("The news.json was empty. It has updated already!")
 
         return []
 
@@ -40,11 +41,14 @@ def get_latest(n) -> list[dict]:
 
 def format_news(items: list[dict]) -> str:
     msg = ""
+    i = 0
     for item in items:
-        title, link, date = item["title"], item["link"], item["date"]
+        i += 1
+        title, link, daten = item["title"], item["link"], item["date"]
         title = html.escape(title, quote = True)
         link = html.escape(link, quote = True)
-        date = html.escape(date, quote = True)
-        msg += (f'<b> - {title}</b>\n{date}, <a href="{link}">Ссылка</a>\n\n')
+        daten = date.fromisoformat(html.escape(daten, quote = True))
+        daten = daten.strftime("%d.%m.%Y")
+        msg += (f'<b>{i}. </b><a href="{link}">{title}</a>\n📅 {daten}\n\n')
 
     return msg

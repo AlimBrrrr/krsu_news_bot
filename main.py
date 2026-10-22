@@ -33,7 +33,7 @@ async def news_loop(bot):
     while True:
         try:
             news = await service.check_news()
-            logger.info("Обнаружено новых: %s", len(news))
+            logger.info("News detected: %s", len(news))
 
             if news:
                 msg = service.format_news(news)
@@ -42,15 +42,15 @@ async def news_loop(bot):
                         await bot.send_message(chat_id = user, text = msg, parse_mode = 'HTML')
                         await asyncio.sleep(0.05)
                     except TelegramForbiddenError:
-                        logger.warning("Пользователь %s заблокировал бота", user)
+                        logger.warning("The user %s blocked the bot", user)
 
                         if subscribers.remove_subscriber(user):
-                            logger.info("Пользователь %s был успешно удален из базы", user)
+                            logger.info("The user %s was removed from db successfully", user)
                     except Exception:
-                        logger.exception("Произошла ошибка: %s", user)
+                        logger.exception("An error has occured: %s", user)
 
         except Exception:
-            logger.exception("Произошла ошибка")
+            logger.exception("An error has occured")
         
         await asyncio.sleep(INTERVAL)
 
@@ -59,4 +59,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logger.info("Работа бота приостановлена вручную")
+        logger.info("Bot was stopped manually")

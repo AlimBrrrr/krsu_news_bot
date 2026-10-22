@@ -8,6 +8,6 @@ TOKEN = os.getenv("TOKEN")
 ADMIN = os.getenv("ADMIN")
 
 if not TOKEN:
-    raise RuntimeError("Не найден токен!")
+    raise RuntimeError("The token has not found!")
 if not ADMIN:
-    raise RuntimeError("Не найден админ!")
+    raise RuntimeError("The admin has not found!")

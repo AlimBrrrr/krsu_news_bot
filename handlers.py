@@ -1,5 +1,5 @@
 from aiogram import Router
-from aiogram.types import Message
+from aiogram.types import Message, LinkPreviewOptions
 from aiogram.filters import Command, CommandObject
 
 import service
@@ -13,7 +13,7 @@ router = Router()
 @router.message(Command("start"))
 async def cmd_start(message: Message):
     subscribers.add_subscriber(message.chat.id)
-    await message.answer("Привет! Это парсер новостей сайта КРСУ. Как только новость появится на сайте, бот сразу сообщит об этом!\n- /stop отписка от новостей\n- /latest {число} показывает количество последних новостей, которые хочешь увидеть")
+    await message.answer("Привет! Это парсер новостей сайта КРСУ. Как только новость появится на сайте, бот сразу сообщит об этом!\n- /stop отписка от новостей\n- /latest N показывает количество последних новостей, которые хочешь увидеть")
 
 
 @router.message(Command("stop"))
@@ -46,14 +46,14 @@ async def send_latest(message: Message, command: CommandObject):
             return
 
         if count > number_of_news:
-            await message.answer((f"Нашлось только {number_of_news} новостей:\n", service.format_news(service.get_latest(number_of_news))), parse_mode = "HTML")
+            await message.answer((f"Нашлось только {number_of_news} новостей:\n", service.format_news(service.get_latest(number_of_news))), parse_mode = "HTML", link_preview_options=LinkPreviewOptions(is_disabled=True))
             return
 
     except ValueError:
         await message.answer("При вызове /latest ввели не число! Введите число")
         return
 
-    await message.answer(service.format_news(service.get_latest(count)), parse_mode = "HTML")
+    await message.answer(service.format_news(service.get_latest(count)), parse_mode = "HTML", link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 
 @router.message(Command(commands = ["sub"]))
