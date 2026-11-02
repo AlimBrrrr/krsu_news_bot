@@ -43,7 +43,7 @@ def remove_subscriber(chat_id) -> bool:
 
         cur.execute('DELETE FROM subscribers WHERE chat_id = ?', (chat_id,))
         conn.commit()
-        logger.info("The user %s has unsubscribed the bot")
+        logger.info("The user %s has unsubscribed the bot", chat_id)
 
         return cur.rowcount == 1
     finally:

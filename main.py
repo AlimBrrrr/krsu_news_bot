@@ -36,33 +36,41 @@ async def news_loop(bot):
             logger.info("News detected: %s", len(news))
 
             if news:
-                users = subscribers.get_subscribers()
-                dead_users = set()
-                news = service.format_news(news).split("\n\n")
-                for new in news:
-                    for user in users:
-                        for attempt in range(5):
-                            try:
-                                if user not in dead_users:
-                                    await bot.send_message(chat_id=user, text=new, parse_mode="HTML")
-                                    await asyncio.sleep(0.05)
-                                    break
-                            except TelegramForbiddenError:
-                                logger.warning("The user %s blocked the bot", user)
-                                subscribers.remove_subscriber(user)
-                                dead_users.add(user)
-                                break
-                            except TelegramRetryAfter as e:
-                                logger.warning("The limit of requests has reached")
-                                await asyncio.sleep(e.retry_after)
-                            except Exception as e:
-                                logger.warning("An error has occured: %s", e)
-                                break
+                await sending_news(bot, news)
 
         except Exception as e:
             logger.exception("An error has occured: %s", e)
         
         await asyncio.sleep(INTERVAL)
+
+
+async def sending_news(bot, news):
+    users = subscribers.get_subscribers()
+    dead_users = set()
+    news = service.format_news(news).split("\n\n")
+    news = [x for x in news if x.strip() != ""]
+    for new in news:
+        for user in users:
+            if user in dead_users:
+                continue
+
+            for attempt in range(5):
+                try:
+                    await bot.send_message(chat_id = user, text = new, parse_mode = "HTML")
+                    logger.info("User %s received the news: %s", user, new[20:60] + "...")
+                    await asyncio.sleep(0.05)
+                    break
+                except TelegramForbiddenError:
+                    logger.warning("The user %s blocked the bot", user)
+                    subscribers.remove_subscriber(user)
+                    dead_users.add(user)
+                    break
+                except TelegramRetryAfter as e:
+                    logger.warning("The limit of requests has reached")
+                    await asyncio.sleep(e.retry_after)
+                except Exception as e:
+                    logger.warning("An error has occured: %s", e)
+                    break
 
 
 if __name__ == "__main__":
