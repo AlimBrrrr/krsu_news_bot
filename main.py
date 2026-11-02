@@ -2,7 +2,7 @@ import asyncio
 import logging
 from logging.handlers import RotatingFileHandler
 from aiogram import Bot, Dispatcher
-from aiogram.exceptions import TelegramForbiddenError
+from aiogram.exceptions import TelegramForbiddenError, TelegramRetryAfter
 from handlers import router
 import subscribers
 import service
@@ -36,21 +36,31 @@ async def news_loop(bot):
             logger.info("News detected: %s", len(news))
 
             if news:
-                msg = service.format_news(news)
-                for user in subscribers.get_subscribers():
-                    try:
-                        await bot.send_message(chat_id = user, text = msg, parse_mode = 'HTML')
-                        await asyncio.sleep(0.05)
-                    except TelegramForbiddenError:
-                        logger.warning("The user %s blocked the bot", user)
+                users = subscribers.get_subscribers()
+                dead_users = set()
+                news = service.format_news(news).split("\n\n")
+                for new in news:
+                    for user in users:
+                        for attempt in range(5):
+                            try:
+                                if user not in dead_users:
+                                    await bot.send_message(chat_id=user, text=new, parse_mode="HTML")
+                                    await asyncio.sleep(0.05)
+                                    break
+                            except TelegramForbiddenError:
+                                logger.warning("The user %s blocked the bot", user)
+                                subscribers.remove_subscriber(user)
+                                dead_users.add(user)
+                                break
+                            except TelegramRetryAfter as e:
+                                logger.warning("The limit of requests has reached")
+                                await asyncio.sleep(e.retry_after)
+                            except Exception as e:
+                                logger.warning("An error has occured: %s", e)
+                                break
 
-                        if subscribers.remove_subscriber(user):
-                            logger.info("The user %s was removed from db successfully", user)
-                    except Exception:
-                        logger.exception("An error has occured: %s", user)
-
-        except Exception:
-            logger.exception("An error has occured")
+        except Exception as e:
+            logger.exception("An error has occured: %s", e)
         
         await asyncio.sleep(INTERVAL)
 

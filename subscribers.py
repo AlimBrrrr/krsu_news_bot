@@ -1,7 +1,9 @@
 import sqlite3
+import logging
 
 
 DB_NAME = 'subscribers.db'
+logger = logging.getLogger(__name__)
 
 
 def init_db():
@@ -27,6 +29,7 @@ def add_subscriber(chat_id) -> bool:
 
         cur.execute('INSERT OR IGNORE INTO subscribers (chat_id) VALUES (?)', (chat_id,))
         conn.commit()
+        logger.info("The user %s has subscribed the bot", chat_id)
 
         return cur.rowcount == 1
     finally:
@@ -40,6 +43,7 @@ def remove_subscriber(chat_id) -> bool:
 
         cur.execute('DELETE FROM subscribers WHERE chat_id = ?', (chat_id,))
         conn.commit()
+        logger.info("The user %s has unsubscribed the bot")
 
         return cur.rowcount == 1
     finally:
